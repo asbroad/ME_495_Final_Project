@@ -4,7 +4,6 @@ import roslib; roslib.load_manifest('youbot_nav_msr')
 import rospy
 import actionlib
 from move_base_msgs.msg import *
-from youbot_nav_msr.msg import PosName
 from geometry_msgs.msg import Twist
 
 def move_to_collection_area():

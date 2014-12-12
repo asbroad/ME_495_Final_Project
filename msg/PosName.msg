@@ -1,1 +1,0 @@
-string pos_name

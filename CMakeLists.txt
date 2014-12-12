@@ -45,10 +45,9 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  PosName.msg
-)
+# add_message_files(
+#  FILES
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -100,9 +99,6 @@ catkin_package(
 # )
 
 ## Declare a cpp executable
-add_executable(simple_navigation_goals src/simple_navigation_goals.cpp)
-add_executable(nav_start_to_goal src/nav_start_to_goal.cpp)
-add_executable(nav_goal_to_start src/nav_goal_to_start.cpp)
 
 
 ## Add cmake target dependencies of the executable/library
@@ -110,17 +106,9 @@ add_executable(nav_goal_to_start src/nav_goal_to_start.cpp)
 # add_dependencies(youbot_2dnav_node youbot_2dnav_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(simple_navigation_goals
-  ${catkin_LIBRARIES}
-)
-
-target_link_libraries(nav_start_to_goal
-  ${catkin_LIBRARIES}
-)
-
-target_link_libraries(nav_goal_to_start
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(example_name
+#  ${catkin_LIBRARIES}
+#)
 
 #############
 ## Install ##
@@ -135,10 +123,6 @@ install(PROGRAMS
   scripts/move_between_start_and_goal.py
   scripts/move_away_from_boxes.py
   scripts/move_to_boxes.py
-  scripts/move_to_named_position.py
-  scripts/send_named_goal.py
-  scripts/nav_test.py
-  scripts/recieve_named_goal.py
   scripts/rotate_in_place.py
   scripts/orient_at_collection_area.py
   scripts_orient_at_build_area.py
