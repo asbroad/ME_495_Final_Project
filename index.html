@@ -38,10 +38,10 @@
 <a id="project-team" class="anchor" href="#project-team" aria-hidden="true"><span class="octicon octicon-link"></span></a>Team</h2>
 
 <p>
-Alex Broad (<a href="https://github.com/asbroad" class="user-mention">@asbroad</a>) <br>
-Nuruallah Gulmus (<a href="https://github.com/elmuhn" class="user-mention">@elmuhn</a>)<br>
-Guilherme Klink (<a href="https://github.com/guiklink" class="user-mention">@guiklink</a>) <br>
-Yue Sun <!--(<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>) --><br>
+Alex Broad (<a href="https://github.com/asbroad" class="user-mention" target="_blank">@asbroad</a>) <br>
+Nuruallah Gulmus (<a href="https://github.com/elmuhn" class="user-mention" target="_blank">@elmuhn</a>)<br>
+Guilherme Klink (<a href="https://github.com/guiklink" class="user-mention" target="_blank">@guiklink</a>) <br>
+Yue Sun (<a href="https://github.com/hereissunyue" class="user-mention" target="_blank">@hereissunyue</a>) <br>
 </p>
 
 <h2>
@@ -89,41 +89,37 @@ We also noticed large errors in the youBot's ability to localize.  We solved thi
 Once the youBot has succesfully navigated to a location parallel to the collection or build area, the simple motion controller is used to move the youBot as close as possile to the to that area. This node works by reading in the sensor value from the left perpendicular sensor reading.  That value represents the distance between the left side of the hokoyu laser and the specified platform.  Our simple controller runs in a loop and moves the youBot closer to the box at a slow speed.  When the distance reading from the sensor gets below a threshold, the youBot stops and has achieved the desired state, directly to the side of the platform.  Our next step for this controller would be to implement a P-controller which would allow us to intelligently alter the speed with which the youbot approaches the specified platform.
 
 <h4>
-<a id="nav-package-code" class="anchor" href="#nav-package-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Code Description/How to Run</h4>
+<a id="nav-package-code" class="anchor" href="#nav-package-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Code Description</h4>
 
+To experiment with the navigation portion of this project, you really only need 4 files.  The files are as follows.
 <pre><code>
-src/
-.../orient_at_collection_area.py
-.../orient_at_build_area.py
-.../rotate_in_place.py
-.../move_to_boxes.py
+launch/
+.../move_base_eband_small.launch  - launch laser scanner, youbot driver, move base, map server, amcl
+scripts/
+.../orient_at_collection_area.py - spend specified /map location to nav stack, rotate 360 degrees in place, send same location a second time 
+.../orient_at_build_area.py - spend specified /map location to nav stack, rotate 360 degrees in place, send same location a second time 
+.../move_to_boxes.py - use laser scan message to move close to side of collection or build areas
+</code></pre>
 
+You can see how the code works by running the following commands in sequence
+<pre><code>
 $ roslaunch youbot_nav_msr move_base_eband_small.launch
 $ rosrun youbot_nav_msr orient_at_collection_area.py
+$ rosrun youbot_nav_msr move_to_boxes.py
+$ rosrun youbot_nav_msr orient_at_build_area.py
+$ rosrun youbot_nav_msr move_to_boxes.py
 </code></pre>
 
+This represents one iteration of the navigation necessary for our building process.  We do also have some code from previous iterations of the nagivation portion still available. I would not recommend using them :), but they are as follows
 
 <pre><code>
-src/
-.../move_away_from_boxes.py
-.../move_between_start_and_goal.py
-
+scripts/
+.../rotate_in_place.py - rotate 360 degrees in place (i.e. around the z-axis)
+.../move_away_from_boxes.py - move a small set distance away from either box (moves in the negative direction along the youbot's y-axis)
+.../move_between_start_and_goal.py - moves a set distance between the two boxes (i.e. you start in front of one of the two areas and move to be in front of the other). this is based on a set distance and will only work if you start with the youbot inside the red tape in Tech D110.
 </code></pre>
 
-
-
-To experiment with the navigation portion of our project, you can run the following 
-
-
-<pre><code>$ roslaunch youbot_nav_msr move_base_eband_small.launch
-$ rosrun youbot_nav_msr orient_at_collection_area.py
-</code></pre>
-
-<h5>
-<a id="nav-package-old" class="anchor" href="#nav-package-old" aria-hidden="true"><span class="octicon octicon-link"></span></a>Original Version of Navigation Sub-Problem</h5>
-We originally handled the navigation sub-problem differently.
-Old version of the code is still works and is available in this package. 
-
+[Note: each script has documentation explaining what the particular node does, for more information, please see the script files.]
 
 <h3>
 <a id="block-recognition" class="anchor" href="#block-recognition" aria-hidden="true"><span class="octicon octicon-link"></span></a>Block Recognition Package</h3>
