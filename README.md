@@ -1,4 +1,4 @@
-ME_495_Final_Project
+ME 495 Final Project
 ====================
 
-This is group 2's final project for ME 495 - Embedded Systems in Robotics
+Please see the [project website](http://asbroad.github.io/ME_495_Final_Project/) for our write up
