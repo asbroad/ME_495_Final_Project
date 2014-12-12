@@ -1,6 +1,0 @@
-<?xml version="1.0"?> 
-<launch>
-   <rosparam command="load" file="$(find youbot_nav_msr)/config/semantic_navigation.yaml"/>
-   <node pkg="youbot_nav_msr" type="recieve_named_goal.py" name="recieve_named_goal" output="screen"/>
-
-</launch>
