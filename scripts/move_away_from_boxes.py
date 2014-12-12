@@ -1,43 +1,39 @@
 #!/usr/bin/env python
 
-""" Example code of how to move a robot forward for 3 seconds. """
+""" 
+This script will move the youBot a short distance in the negative direction along it's y-axis.
+For our project, this is used to move the youBot away from the collection and building areas.
+As it simply moves in the negative direction along it's y-axis, the youBot must have the box
+it is moving away from on it's left side. 
+"""
 
-# We always import roslib, and load the manifest to handle dependencies
 import roslib; roslib.load_manifest('youbot_nav_msr')
 import rospy
-
-# recall: robots generally take base movement commands on a topic 
-#  called "cmd_vel" using a message type "geometry_msgs/Twist"
 from geometry_msgs.msg import Twist
 
 y_speed = -0.1  
 
-# this quick check means that the following code runs ONLY if this is the 
-# main file -- if we "import move" in another file, this code will not execute.
 if __name__=="__main__":
 
-    # first thing, init a node!
-    rospy.init_node('move')
+    rospy.init_node('move_away_from_boxes')
 
     # publish to cmd_vel
     p = rospy.Publisher('cmd_vel', Twist)
 
     # create a twist message, fill in the details
     twist = Twist()
-    twist.linear.y = y_speed;                   # our forward speed
-    twist.linear.x = 0; twist.linear.z = 0;     # we can't use these!        
-    twist.angular.x = 0; twist.angular.y = 0;   #          or these!
-    twist.angular.z = 0;                        # no rotation
+    twist.linear.y = y_speed;                   
+    twist.linear.x = 0; twist.linear.z = 0;    
+    twist.angular.x = 0; twist.angular.y = 0; 
+    twist.angular.z = 0;                     
 
     # announce move, and publish the message
     rospy.loginfo("About to be moving!")
     for i in range(30):
         p.publish(twist)
-        rospy.sleep(0.1) # 30*0.1 = 3.0
+        rospy.sleep(0.1) 
     
-    # create a new message
+    # stop motion 
     twist = Twist()
-
-    # note: everything defaults to 0 in twist, if we don't fill it in, we stop!
     rospy.loginfo("Stopping!")
     p.publish(twist)

@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 
-""" Example code of how to move a robot forward for 3 seconds. """
+""" 
+This script will move the youBot a calculated distance between the collection and build areas.
+It moves the youBot along it's x-axis. It can move the youBot either forwards or backwards,
+depending on how the 'direction' parameter is set on the parameter server. If it isn't set, it
+defaults to forwards.  This script is a basic version of our navigation implementation, in the end
+we do not use this. It is about a simple as can get and therefore is not particularly extensible to
+changes in the environment. We now use the ROS nav stack and other scripts in this directory to achieve
+the same goal in a more robust manor.
+"""
 
-# We always import roslib, and load the manifest to handle dependencies
 import roslib; roslib.load_manifest('youbot_nav_msr')
 import rospy
-
-# recall: robots generally take base movement commands on a topic 
-#  called "cmd_vel" using a message type "geometry_msgs/Twist"
 from geometry_msgs.msg import Twist
 
-x_speed = 0.1  # 0.1 m/s
+x_speed = 0.1  
 
-# this quick check means that the following code runs ONLY if this is the 
-# main file -- if we "import move" in another file, this code will not execute.
 if __name__=="__main__":
 
-    # first thing, init a node!
-    rospy.init_node('move')
+    rospy.init_node('move_between_start_and_goal')
 
     # publish to cmd_vel
     p = rospy.Publisher('cmd_vel', Twist)
@@ -26,21 +27,18 @@ if __name__=="__main__":
 
     # create a twist message, fill in the details
     twist = Twist()
-    twist.linear.x = direction*x_speed;                   # our forward speed
-    twist.linear.y = 0; twist.linear.z = 0;     # we can't use these!        
-    twist.angular.x = 0; twist.angular.y = 0;   #          or these!
-    twist.angular.z = 0;                        # no rotation
+    twist.linear.x = direction*x_speed;        
+    twist.linear.y = 0; twist.linear.z = 0;   
+    twist.angular.x = 0; twist.angular.y = 0;
+    twist.angular.z = 0;                    
 
     # announce move, and publish the message
     rospy.loginfo("About to be moving!")
     for i in range(110):
         p.publish(twist)
-	print('here : ' + str(i))
         rospy.sleep(0.1) # 30*0.1 = 3.0
     
-    # create a new message
+    # stop motion
     twist = Twist()
-
-    # note: everything defaults to 0 in twist, if we don't fill it in, we stop!
     rospy.loginfo("Stopping!")
     p.publish(twist)

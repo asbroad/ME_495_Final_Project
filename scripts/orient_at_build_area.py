@@ -6,6 +6,14 @@ import actionlib
 from move_base_msgs.msg import *
 from geometry_msgs.msg import Twist
 
+'''
+This script will move to the build area defined in the /map frame.  It will first set a nav goal (again, 
+as defined in the /map frame and move to that location.  As the area we are working in does not allow
+for the best localization with current techniques, we then try to improve our localization by rotating 360
+degrees in place. We then resend the original desired position which helps correct any error in the original
+position.
+'''
+
 def move_to_collection_area():
 
     #Simple Action Client - The simple action client is used to send actions to the
@@ -16,6 +24,7 @@ def move_to_collection_area():
     #create goal
     goal = MoveBaseGoal()
     #set goal
+    # THIS GOAL CAN BE EASILY CHANGED IF WE WERE TO MOVE THE BOXES OR EXTEND THIS PROJECT TO DIFFERENT MAP
     goal.target_pose.pose.position.x = 0.352 
     goal.target_pose.pose.position.y = -0.440
     goal.target_pose.pose.position.z = 0.000
@@ -42,28 +51,26 @@ def move_to_collection_area():
 
 def help_localize():
 
-    rotate_speed = 0.3  # 0.1 m/s
+    rotate_speed = 0.3  
 
     # publish to cmd_vel
     p = rospy.Publisher('cmd_vel', Twist)
 
     # create a twist message, fill in the details
     twist = Twist()
-    twist.linear.x = 0;                   # our forward speed
-    twist.linear.y = 0; twist.linear.z = 0;     # we can't use these!        
-    twist.angular.x = 0; twist.angular.y = 0;   #          or these!
-    twist.angular.z = rotate_speed;                        # no rotation
+    twist.linear.x = 0;                  
+    twist.linear.y = 0; twist.linear.z = 0;
+    twist.angular.x = 0; twist.angular.y = 0;
+    twist.angular.z = rotate_speed;         
 
     # announce move, and publish the message
     rospy.loginfo("About to be moving!")
     for i in range(200):
         p.publish(twist)
-        rospy.sleep(0.1) # 30*0.1 = 3.0
+        rospy.sleep(0.1) 
     
-    # create a new message
+    # stop rotating
     twist = Twist()
-
-    # note: everything defaults to 0 in twist, if we don't fill it in, we stop!
     rospy.loginfo("Stopping!")
     p.publish(twist)
 
