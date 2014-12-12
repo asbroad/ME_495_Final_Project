@@ -39,8 +39,8 @@
 
 <p>
 Alex Broad (<a href="https://github.com/asbroad" class="user-mention">@asbroad</a>) <br>
-Nuruallah Gulmus <!--(<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>) --><br>
-Guilherme Klink <!-- (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>) --><br>
+Nuruallah Gulmus (<a href="https://github.com/elmuhn" class="user-mention">@elmuhn</a>)<br>
+Guilherme Klink (<a href="https://github.com/guiklink" class="user-mention">@guiklink</a>) <br>
 Yue Sun <!--(<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>) --><br>
 </p>
 
@@ -66,11 +66,64 @@ Design structure, develop plan for how to build it, manage other nodes
 <h3>
 <a id="nav-package" class="anchor" href="#nav-package" aria-hidden="true"><span class="octicon octicon-link"></span></a>Navigation Package</h3>
 
-Use combination of ROS Nav Stack (locations defined in the map frame) and laser scan based controller to navigate workspace.
+For the navigation portion of our project we ended up using a combination of the <a href="http://wiki.ros.org/navigation" target="_blank">ROS Nav Stack</a> and a simple motion controller based on sensor readings from the Hokuyo laser scanner.  We use the ROS Nav stack to move the youBot to positions parallel to the collection and build areas and then use the simple motion controller to bring the youBot as close as possible to those areas.  This allows the robotic arm the largest possible state space with which to interact with the building blocks. 
+
+<h4>
+<a id="nav-package-ros" class="anchor" href="#nav-package-ros" aria-hidden="true"><span class="octicon octicon-link"></span></a>ROS Nav Stack</h4>
+
+We used the ROS Nav Stack to orient the youBot parallel to both the collection and build areas so that the simple motion controller could then move the robot closer to the platforms.  We wanted to be able to generalize this work to other environmental set-ups, such as alternate locations of the collection and build areas.  To achieve this goal, we decided to develop a map of our workspace and define the locations of the two important areas in the /map frame.  We used the ROS gmapping package to create the map of our workspace which can be seen below. 
+
+<div style="width: 500px; height: 250px;">
+    <img src="images/partial_d110.png" width="50%" height="100%">
+</div>
+
+As mentioned, we defined the locations parallel to the collection and build areas in the map frame.  We found these values through trial and error with the 2D Nav Goal button in rviz, which allows you to send goal locations to the nav stack from a visual interface.  If one were to develop a new map or alter the environment, it would be important to change the hard coded locations in the <code>orient_at_collection_area.py</code> and <code>orient_at_build_area.py</code> scripts.  Please see the code documentation for more information on this.  One modification that we could make to our project would be to extend our tag tracking frame work to dynamically recognize the location of the collection and build areas and then there would be no need for hard coding the locations.
+
+After setting up the ROS Nav Stack we noticed a number of issues with the youBot unintentionally interacting with parts of the environment (such as the collection area) that it should not be.  We solved this problem by modifying a number of the ROS Nav Stack parameters.  In particular, we modified a number of the ROS Nav Stack parameters to stop the robot from running into objects in the workspace.  The most important parameters were the <code>robot_footprint</code> and <code>obstacle_inflation</code> parameters in the local and global costmaps and the <code>goal_tolerance</code> parameters in the local planner.  For this project, we used the standard ROS global planner and the eband local planner. 
+
+We also noticed large errors in the youBot's ability to localize.  We solved this problem by using an idea from the ROS Nav Stack's list of recovery actions.  After moving to the desired location, we tell the youBot to rotate 360 degrees around it's z-axis.  This helps localize the youBot by increasing the number of sensor readings it has and by letting the youBot see different areas of the workspace (some of which are more feature-rich and imortant for localization).  We then resend the first location we sent to the ROS Nav Stack, which often moves a small amount to correct for any errors it had in its first attempt.
+
+<h4>
+<a id="nav-package-simp-controller" class="anchor" href="#nav-package-simp-controller" aria-hidden="true"><span class="octicon octicon-link"></span></a>Simple Motion Controller</h4>
+
+Once the youBot has succesfully navigated to a location parallel to the collection or build area, the simple motion controller is used to move the youBot as close as possile to the to that area. This node works by reading in the sensor value from the left perpendicular sensor reading.  That value represents the distance between the left side of the hokoyu laser and the specified platform.  Our simple controller runs in a loop and moves the youBot closer to the box at a slow speed.  When the distance reading from the sensor gets below a threshold, the youBot stops and has achieved the desired state, directly to the side of the platform.  Our next step for this controller would be to implement a P-controller which would allow us to intelligently alter the speed with which the youbot approaches the specified platform.
+
+<h4>
+<a id="nav-package-code" class="anchor" href="#nav-package-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Code Description/How to Run</h4>
+
+<pre><code>
+src/
+.../orient_at_collection_area.py
+.../orient_at_build_area.py
+.../rotate_in_place.py
+.../move_to_boxes.py
+
+$ roslaunch youbot_nav_msr move_base_eband_small.launch
+$ rosrun youbot_nav_msr orient_at_collection_area.py
+</code></pre>
+
+
+<pre><code>
+src/
+.../move_away_from_boxes.py
+.../move_between_start_and_goal.py
+
+</code></pre>
+
+
+
+To experiment with the navigation portion of our project, you can run the following 
+
 
 <pre><code>$ roslaunch youbot_nav_msr move_base_eband_small.launch
 $ rosrun youbot_nav_msr orient_at_collection_area.py
 </code></pre>
+
+<h5>
+<a id="nav-package-old" class="anchor" href="#nav-package-old" aria-hidden="true"><span class="octicon octicon-link"></span></a>Original Version of Navigation Sub-Problem</h5>
+We originally handled the navigation sub-problem differently.
+Old version of the code is still works and is available in this package. 
+
 
 <h3>
 <a id="block-recognition" class="anchor" href="#block-recognition" aria-hidden="true"><span class="octicon octicon-link"></span></a>Block Recognition Package</h3>
