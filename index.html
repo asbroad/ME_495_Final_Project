@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Building Block Structures with a Kuka youBot</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Building Block Structures with a Kuka youBot</h1>
+        <h2>Group 2 Final Project</h2>
+        <a href="https://github.com/asbroad/ME_495_Final_Project" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+
+<h1>
+<a id="project-goal" class="anchor" href="#project-goal" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project Goal</h1>
+
+<p>The overall goal of our project was to develop a system that used the Kuka youBot to build designed structures out of building blocks.  For this project, the youBot will need to design a structure that it would like to build (e.g. a tower or a pyramid), develop a plan of how to build it and then carry out that plan.  To do so, the youBot will need to be able to navigate to a designated 'collection area' in order to pick up unused building blocks.  It will then need to use it's onboard arm to pick up and carry the building block to a designated 'building area', where it will strategically place the block based on the original plan.  The youBot will also need to be able to recognize when it has completed building it structure.</p>
+
+<h2>
+<a id="project-team" class="anchor" href="#project-team" aria-hidden="true"><span class="octicon octicon-link"></span></a>Team</h2>
+
+<p>
+Alex Broad (<a href="https://github.com/asbroad" class="user-mention" target="_blank">@asbroad</a>) <br>
+Nuruallah Gulmus (<a href="https://github.com/elmuhn" class="user-mention" target="_blank">@elmuhn</a>)<br>
+Guilherme Klink (<a href="https://github.com/guiklink" class="user-mention" target="_blank">@guiklink</a>) <br>
+Yue Sun (<a href="https://github.com/hereissunyue" class="user-mention" target="_blank">@hereissunyue</a>) <br>
+</p>
+
+<h2>
+<a id="project-workspace-and-materials" class="anchor" href="#project-workspace-and-materials" aria-hidden="true"><span class="octicon octicon-link"></span></a>Workspace and Materials</h2>
+
+<img src="images/workspace.jpg">
+
+The workspace is a subsection of D110 in the Technological Institute.  The collection and building areas are the bottom and top of a paper ream box, respectively.  The blocks we are using to build the structures are 2"x2"x2" wood blocks.
+
+<h3>
+<a id="project-decomposition" class="anchor" href="#project-decomposition" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project Decomposition</h3>
+
+We broke the project up into the following four parts.  The <a href="#state-manager">State Manager</a> which will develop the design the structure and develop the plan for how to build it.  It will also manage the other nodes.  The <a href="#nav-package">Navigation</a> package which will navigate between the collection and build areas.  It should be capable of dynamically replanning the youBot's path between the two designated areas to avoid obstacles.  The <a href="#block-recognition">Block Recognition</a> package which will locate the blocks in the building and collection areas.  It should locate each building block with high fidelity so that the robotic arm can succesfully pick up the block.  And lastly, the <a href="#arm-dynamics">Arm Dynamics</a> package which will pick up unused blocks and strategically place them in the structure. 
+
+<h3>
+<a id="state-manager" class="anchor" href="#state-manager" aria-hidden="true"><span class="octicon octicon-link"></span></a>State Manager</h3>
+
+Design structure, develop plan for how to build it, manage other nodes
+
+<img src="images/youbot_state_manager.jpg">
+
+<h3>
+<a id="nav-package" class="anchor" href="#nav-package" aria-hidden="true"><span class="octicon octicon-link"></span></a>Navigation Package</h3>
+
+For the navigation portion of our project we ended up using a combination of the <a href="http://wiki.ros.org/navigation" target="_blank">ROS Nav Stack</a> and a simple motion controller based on sensor readings from the Hokuyo laser scanner.  We use the ROS Nav stack to move the youBot to positions parallel to the collection and build areas and then use the simple motion controller to bring the youBot as close as possible to those areas.  This allows the robotic arm the largest possible state space with which to interact with the building blocks. 
+
+<h4>
+<a id="nav-package-ros" class="anchor" href="#nav-package-ros" aria-hidden="true"><span class="octicon octicon-link"></span></a>ROS Nav Stack</h4>
+
+We used the ROS Nav Stack to orient the youBot parallel to both the collection and build areas so that the simple motion controller could then move the robot closer to the platforms.  We wanted to be able to generalize this work to other environmental set-ups, such as alternate locations of the collection and build areas.  To achieve this goal, we decided to develop a map of our workspace and define the locations of the two important areas in the /map frame.  We used the ROS gmapping package to create the map of our workspace which can be seen below. 
+
+<div style="width: 500px; height: 250px;">
+    <img src="images/partial_d110.png" width="50%" height="100%">
+</div>
+
+As mentioned, we defined the locations parallel to the collection and build areas in the map frame.  We found these values through trial and error with the 2D Nav Goal button in rviz, which allows you to send goal locations to the nav stack from a visual interface.  If one were to develop a new map or alter the environment, it would be important to change the hard coded locations in the <code>orient_at_collection_area.py</code> and <code>orient_at_build_area.py</code> scripts.  Please see the code documentation for more information on this.  One modification that we could make to our project would be to extend our tag tracking work to dynamically recognize the location of the collection and build areas and then there would be no need for hard coding the locations.
+
+After setting up the ROS Nav Stack we noticed a number of issues, one of which was the youBot unintentionally interacting with parts of the environment (such as the collection area) that it should not be.  We solved this problem by modifying a number of the ROS Nav Stack parameters.  The most important parameters were the <code>robot_footprint</code> and <code>obstacle_inflation</code> parameters in the local and global costmaps and the <code>goal_tolerance</code> parameters in the local planner.  For this project, we used the standard ROS global planner and the eband local planner. 
+
+We also noticed large errors in the youBot's ability to localize.  We solved this problem by using an idea from the ROS Nav Stack's list of recovery actions.  After moving to the desired location, we tell the youBot to rotate 360 degrees around it's z-axis.  This helps localize the youBot by increasing the number of sensor readings it has and by letting the youBot see different areas of the workspace (some of which are more feature-rich and imortant for localization).  We then resend the first location we sent to the ROS Nav Stack, which often moves a small amount to correct for any errors it had in its first attempt.
+
+<h4>
+<a id="nav-package-simp-controller" class="anchor" href="#nav-package-simp-controller" aria-hidden="true"><span class="octicon octicon-link"></span></a>Simple Motion Controller</h4>
+
+Once the youBot has succesfully navigated to a location parallel to the collection or build area, the simple motion controller is used to move the youBot as close as possile to the to that area. This node works by reading in the sensor value from the left perpendicular sensor reading.  That value represents the distance between the left side of the hokoyu laser and the specified platform.  Our simple controller runs in a loop and moves the youBot closer to the box at a slow speed.  When the distance reading from the sensor gets below a threshold, the youBot stops and has achieved the desired state, directly to the side of the platform.  Our next step for this controller would be to implement a P-controller which would allow us to intelligently alter the speed with which the youbot approaches the specified platform.
+
+<h4>
+<a id="nav-package-code" class="anchor" href="#nav-package-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Code Description</h4>
+
+To experiment with the navigation portion of this project, you really only need 4 files.  The files are as follows.
+<pre><code>
+launch/
+.../move_base_eband_small.launch  - launch laser scanner, youbot driver, move base, map server, amcl
+scripts/
+.../orient_at_collection_area.py - spend specified /map location to nav stack, rotate 360 degrees in place, send same location a second time 
+.../orient_at_build_area.py - spend specified /map location to nav stack, rotate 360 degrees in place, send same location a second time 
+.../move_to_boxes.py - use laser scan message to move close to side of collection or build areas
+</code></pre>
+
+You can see how the code works by running the following commands in sequence
+<pre><code>
+$ roslaunch youbot_nav_msr move_base_eband_small.launch
+$ rosrun youbot_nav_msr orient_at_collection_area.py
+$ rosrun youbot_nav_msr move_to_boxes.py
+$ rosrun youbot_nav_msr orient_at_build_area.py
+$ rosrun youbot_nav_msr move_to_boxes.py
+</code></pre>
+
+This represents one iteration of the navigation necessary for our building process.  We do also have some code from previous iterations of the nagivation portion still available. I would not recommend using them :), but they are as follows
+
+<pre><code>
+scripts/
+.../rotate_in_place.py - rotate 360 degrees in place (i.e. around the z-axis)
+.../move_away_from_boxes.py - move a small set distance away from either box (moves in the negative direction along the youbot's y-axis)
+.../move_between_start_and_goal.py - moves a set distance between the two boxes (i.e. you start in front of one of the two areas and move to be in front of the other). this is based on a set distance and will only work if you start with the youbot inside the red tape in Tech D110.
+</code></pre>
+
+[Note: each script has documentation explaining what the particular node does, for more information, please see the script files.]
+
+<h3>
+<a id="block-recognition" class="anchor" href="#block-recognition" aria-hidden="true"><span class="octicon octicon-link"></span></a>Block Recognition Package</h3>
+
+For block recognition the Ar Tag Track Alvar was used. Using ar tag tracking. More details on how to use Alvar can be found on <a href="https://github.com/ablarry91/ros-tag-tracking" target="_blank">github</a> and the <a href="http://wiki.ros.org/ar_track_alvar" target="_blank">ROS wiki</a>. 
+
+<img src="images/tag_cubes.jpg">
+
+<h3>
+<a id="arm-dynamics" class="anchor" href="#arm-dynamics" aria-hidden="true"><span class="octicon octicon-link"></span></a>Arm Dynamics Package</h3>
+
+For our inverse kinnematics the following git repositories were used:
+1) <a href="https://github.com/gt-ros-pkg/hrl-kdl" target="_blank">hrl-kdl</a>
+2) <a href="https://github.com/ros/urdfdom" target="_blank">urdfdom </a>
+3) <a href="http://wiki.ros.org/brics_actuator" target="_blank">brics_actuator </a>
+4) <a href="https://github.com/youbot/youbot_driver" target="_blank">youbot_driver</a>
+5) <a href="https://github.com/youbot/youbot_driver_ros_interface" target="_blank">youbot_driver_ros_interface</a>
+
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/asbroad/ME_495_Final_Project/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/asbroad/ME_495_Final_Project/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/asbroad/ME_495_Final_Project"></a> is maintained by <a href="https://github.com/asbroad">asbroad</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
